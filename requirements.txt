@@ -1,0 +1,9 @@
+pyrofork
+uvloop; sys_platform != 'win32'
+tgcrypto
+flask
+uvicorn
+aiohttp
+python-dateutil
+jinja2
+telethon

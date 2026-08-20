@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Session Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0088cc;
+            --primary-hover: #0077b5;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 32px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 136, 204, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 136, 204, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .session-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .copy-btn {
+            margin-top: 10px;
+            background: #334155;
+            font-size: 13px;
+            padding: 8px;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #otp-section {
+            display: none;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="main-container">
+        <h1>Session Generator</h1>
+        <p class="subtitle">Generate Pyrogram String Session</p>
+
+        <div id="setup-section">
+            <div class="input-group">
+                <label>API ID</label>
+                <input type="number" id="api_id" placeholder="1234567">
+                <small style="color: #94a3b8; font-size: 11px;">Get from <a href="https://my.telegram.org"
+                        target="_blank" style="color: var(--primary);">my.telegram.org</a></small>
+            </div>
+            <div class="input-group">
+                <label>API HASH</label>
+                <input type="text" id="api_hash" placeholder="abcdef1234567890">
+                <small style="color: #94a3b8; font-size: 11px;">32-char hex string (Not a Bot Token!)</small>
+            </div>
+            <div class="input-group">
+                <label>Library</label>
+                <select id="library-select">
+                    <option value="pyrogram">Pyrogram</option>
+                    <option value="telethon">Telethon</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Login Method</label>
+                <select id="login-method" onchange="toggleMethod()">
+                    <option value="phone">Phone Number</option>
+                    <option value="bot">Bot Token</option>
+                </select>
+            </div>
+            <div class="input-group" id="phone-group">
+                <label>Phone Number (with +)</label>
+                <input type="text" id="phone" placeholder="+88017XXXXXXXX">
+            </div>
+            <div class="input-group" id="bot-group" style="display: none;">
+                <label>Bot Token</label>
+                <input type="text" id="bot_token" placeholder="123456:ABC-DEF">
+            </div>
+
+            <button id="main-btn" onclick="handleInitialAction()">
+                <span id="btn-text">Generate Session</span>
+                <div class="spinner" id="btn-spinner"></div>
+            </button>
+        </div>
+
+        <div id="otp-section">
+            <div class="input-group">
+                <label>Enter OTP (from Telegram)</label>
+                <input type="text" id="otp" placeholder="12345">
+            </div>
+            <button onclick="handleLogin()">
+                Verify OTP
+            </button>
+        </div>
+
+        <div id="twofa-section" style="display: none;">
+            <div class="input-group">
+                <label>2FA Cloud Password</label>
+                <input type="password" id="twofa_password" placeholder="Enter your 2FA password">
+            </div>
+            <button onclick="handle2FALogin()">
+                Verify 2FA Password
+            </button>
+        </div>
+
+        <div class="error-msg" id="error-msg"></div>
+
+        <div class="result-container" id="result-container">
+            <label>String Session</label>
+            <div class="session-box" id="session-string"></div>
+            <button class="copy-btn" onclick="copySession()">Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        let phoneCodeHash = '';
+        let sessionId = '';
+
+        function toggleMethod() {
+            const method = document.getElementById('login-method').value;
+            document.getElementById('phone-group').style.display = method === 'phone' ? 'block' : 'none';
+            document.getElementById('bot-group').style.display = method === 'bot' ? 'block' : 'none';
+        }
+
+        async function handleInitialAction() {
+            const method = document.getElementById('login-method').value;
+            const api_id = document.getElementById('api_id').value;
+            const api_hash = document.getElementById('api_hash').value;
+            const library = document.getElementById('library-select').value;
+
+            if (!api_id || !api_hash) {
+                showError("Please fill all fields");
+                return;
+            }
+
+            setLoading(true);
+            hideError();
+
+            if (method === 'bot') {
+                const bot_token = document.getElementById('bot_token').value;
+                await performLogin({ api_id, api_hash, bot_token, library });
+            } else {
+                const phone = document.getElementById('phone').value;
+                await sendOTP(api_id, api_hash, phone, library);
+            }
+        }
+
+        async function sendOTP(api_id, api_hash, phone, library) {
+            try {
+                const res = await fetch('/api/send_code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_id, api_hash, phone, library })
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                phoneCodeHash = data.phone_code_hash;
+                sessionId = data.session_id;
+                document.getElementById('setup-section').style.display = 'none';
+                document.getElementById('otp-section').style.display = 'block';
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function handleLogin() {
+            const api_id = document.getElementById('api_id').value;
+            const api_hash = document.getElementById('api_hash').value;
+            const phone = document.getElementById('phone').value;
+            const phone_code = document.getElementById('otp').value;
+            const library = document.getElementById('library-select').value;
+
+            setLoading(true);
+            hideError();
+
+            await performLogin({
+                api_id,
+                api_hash,
+                phone,
+                phone_code,
+                library,
+                phone_code_hash: phoneCodeHash,
+                session_id: sessionId
+            });
+        }
+
+        async function handle2FALogin() {
+            const api_id = document.getElementById('api_id').value;
+            const api_hash = document.getElementById('api_hash').value;
+            const password = document.getElementById('twofa_password').value;
+            const library = document.getElementById('library-select').value;
+
+            if (!password) {
+                showError("Please enter your 2FA password");
+                return;
+            }
+
+            setLoading(true);
+            hideError();
+
+            await performLogin({
+                api_id,
+                api_hash,
+                password,
+                library,
+                session_id: sessionId
+            });
+        }
+
+        async function performLogin(payload) {
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                if (data.needs_2fa) {
+                    document.getElementById('otp-section').style.display = 'none';
+                    document.getElementById('setup-section').style.display = 'none';
+                    document.getElementById('twofa-section').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('otp-section').style.display = 'none';
+                document.getElementById('setup-section').style.display = 'none';
+                document.getElementById('twofa-section').style.display = 'none';
+                document.getElementById('result-container').style.display = 'block';
+                document.getElementById('session-string').innerText = data.session_string;
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function setLoading(isLoading) {
+            document.getElementById('btn-text').style.display = isLoading ? 'none' : 'block';
+            document.getElementById('btn-spinner').style.display = isLoading ? 'block' : 'none';
+            document.getElementById('main-btn').disabled = isLoading;
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.innerText = msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-msg').style.display = 'none';
+        }
+
+        function copySession() {
+            const str = document.getElementById('session-string').innerText;
+            navigator.clipboard.writeText(str);
+            alert("Copied!");
+        }
+    </script>
+</body>
+
+</html>
